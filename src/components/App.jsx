@@ -15,44 +15,47 @@ class App extends Component {
     });
   };
 
-  handleAddContacts = (contactName, contactNumber) => {
-    const addedName = this.state.contacts.some(
-      contact => contact.name.toLowerCase() === contactName.toLowerCase()
+  handleAddContacts = ({ name, number }) => {
+    const { contacts } = this.state;
+    const addedName = contacts.some(
+      contact => contact.name.toLowerCase() === name.toLowerCase()
     );
+
     if (addedName) {
-      return alert(`${contactName} is already in contacts`);
+      return alert(`${name} is already in contacts`);
     }
-    const id = nanoid(8);
-    this.setState({
-      contacts: [
-        ...this.state.contacts,
-        { name: contactName, id: id, number: contactNumber },
-      ],
-    });
+
+    this.setState(prevState => ({
+      contacts: [...prevState.contacts, { name, id: nanoid(8), number }],
+    }));
   };
 
-  handleContactsDelete = event => {
-    const names = this.state.contacts.filter(
-      contact => contact.id !== event.currentTarget.id
-    );
-    this.setState({
-      contacts: [...names],
-    });
+  handleContactsDelete = id => {
+    this.setState(prevState => ({
+      contacts: prevState.contacts.filter(contact => contact.id !== id),
+    }));
   };
-  render() {
-    const renderNames = this.state.contacts.filter(contact =>
+
+  getVisibleContacts = () => {
+    return this.state.contacts.filter(contact =>
       contact.name.toLowerCase().includes(this.state.filter.toLowerCase())
     );
+  };
+  render() {
+    const { contacts, filter } = this.state;
+    const renderNames = this.getVisibleContacts();
     return (
       <>
         <h1>Phonebook</h1>
         <ContactForm handleAddContacts={this.handleAddContacts} />
         <h2>Contacts</h2>
-        <Filter filter={this.state.filter} findName={this.findNameInput} />
-        <ContactList
-          contacts={renderNames}
-          handleContactsDelete={this.handleContactsDelete}
-        />
+        <Filter filter={filter} findName={this.findNameInput} />
+        {!!contacts.length && (
+          <ContactList
+            contacts={renderNames}
+            handleContactsDelete={this.handleContactsDelete}
+          />
+        )}
       </>
     );
   }
